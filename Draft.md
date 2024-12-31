@@ -51,7 +51,106 @@ To build a web application that allows users to:
 ## 2.6 Match Results Update
 - A background job will:
   - Fetch match results daily at 17:00 EST via [RapidAPI](https://rapidapi.com/).
-  - Update match data in the Google Sheet via Airtable API.
+  - Update match data in the database via Airtable API.
 
 ## 2.7 View Upcoming Matches
 - Users can view a full list of matches for the next game week.
+
+# 3. Project Setup and Best Practices
+
+## 3.1 Project Setup
+- All new components should go in `/components` at the root (not in the app folder) and be named like `example-cor`.
+- All new pages go in `/app`.
+- Use the Next.js 14 App Router.
+- All data fetching should be done in a server component and passed down as props.
+- Client components (using `useState`, hooks, etc.) require the `'use client'` directive at the top of the file.
+
+## 3.2 Server-Side API Calls
+- All interactions with external APIs (e.g., Reddit, OpenAI) should be performed server-side.
+- Create dedicated API routes in the `pages/api` directory for each external API interaction.
+- Client-side components should fetch data through these API routes, not directly from external APIs.
+
+## 3.3 Environment Variables
+- Store all sensitive information (API keys, credentials) in environment variables.
+- Use an `.env.local` file for local development and ensure it is listed in `.gitignore`.
+- For production, set environment variables in the deployment platform (e.g., Vercel).
+- Access environment variables only in server-side code or API routes.
+
+## 3.4 Error Handling and Logging
+- Implement comprehensive error handling in both client-side components and server-side API routes.
+- Log errors on the server-side for debugging purposes.
+- Display user-friendly error messages on the client-side.
+
+## 3.5 Type Safety
+- Use TypeScript interfaces for all data structures, especially API responses.
+- Avoid using the `any` type to ensure type safety.
+
+## 3.6 API Client Initialization
+- Initialize API clients as needed to streamline server-side interactions and reduce redundancy.
+
+# 4. Intergration details
+# Requirements
+
+## 4.1 Authentication
+- **Sign In/Sign Up**: Use Clerk components for user authentication.
+- **Unique Username**: Enforce unique username constraints via validation.
+
+## 4.2 Predictions Management
+- Users can fetch upcoming matches using the API.
+- **API Example**:
+  - **Request**:
+    ```javascript
+    axios.get('/api/matches/upcoming');
+    ```
+  - **Response**:
+    ```json
+    [
+      {
+        "matchId": 1,
+        "homeTeam": "Team A",
+        "awayTeam": "Team B",
+        "gameWeek": 12,
+        "status": "not Started",
+        "startTime": "2024-01-15T15:00:00Z"
+      }
+    ]
+    ```
+
+## 4.3 Leaderboard
+- Users can view the leaderboard using the API.
+- **API Example**:
+  - **Request**:
+    ```javascript
+    axios.get('/api/leaderboard');
+    ```
+  - **Response**:
+    ```json
+    [
+      {
+        "username": "user1",
+        "totalPoints": 45,
+        "previousWeekPoints": 10,
+        "rank": 1
+      },
+      {
+        "username": "user2",
+        "totalPoints": 40,
+        "previousWeekPoints": 8,
+        "rank": 2
+      }
+    ]
+    ```
+
+## 4.4 Match Results Update
+- Match results will be updated daily using a CRON job.
+- **Example CRON Job**:
+  ```javascript
+  const updateMatchResults = async () => {
+    const results = await axios.get('https://api.rapidapi.com/matches');
+    await airtableClient.update('Matches', results.data);
+  };
+
+  setInterval(updateMatchResults, 24 * 60 * 60 * 1000); // Run daily
+
+
+

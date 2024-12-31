@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/matchResults.js",
+
+    "dev": "ts-node src/matchResults.ts"
+  }
+} 
